@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تنظیمات استارت - پارس</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #0d1117; color: white; font-family: Tahoma, sans-serif; padding: 20px; min-height: 100vh; }
+        h2 { color: #00b4d8; margin-bottom: 20px; font-size: 20px; }
+        label { display: block; margin-bottom: 10px; color: #8b949e; font-size: 14px; }
+        textarea { width: 100%; height: 200px; background: #0d1117; color: white; border: 1px solid #30363d; border-radius: 8px; padding: 15px; font-size: 16px; font-family: Tahoma; resize: vertical; }
+        textarea:focus { outline: none; border-color: #00b4d8; }
+        button { width: 100%; background: #00b4d8; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; margin-top: 20px; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #0077b6; }
+        .back { color: #8b949e; text-decoration: none; display: block; margin-top: 20px; text-align: center; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <h2>⚙️ تنظیمات متن استارت</h2>
+    <form method="POST">
+        <label>متن خوش‌آمدگویی ربات (وقتی کاربر /start می‌زند):</label>
+        <textarea name="start_text">{{ bot.start_text }}</textarea>
+        <button type="submit">ذخیره تغییرات 💾</button>
+    </form>
+    <a href="/dashboard" class="back">← بازگشت به داشبورد</a>
+</body>
+</html>
