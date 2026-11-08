@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import json
 import os
-import threading
 import time
 import requests
+from multiprocessing import Process
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key_change_me_12345"
@@ -140,31 +140,17 @@ def bot_loop(token, bot_name):
             print(f"خطا در ربات {bot_name}: {e}")
             time.sleep(3)
 
-def start_all_bots():
-    time.sleep(1)
+def run_bots():
+    time.sleep(3) # صبر برای بالا اومدن اولیه
     db = load_db()
     for token, data in db.items():
         if token not in running_tokens:
             running_tokens.add(token)
             bot_name = data.get("bot_name", token[:5])
-            t = threading.Thread(target=bot_loop, args=(token, bot_name))
-            t.daemon = True
-            t.start()
+            p = Process(target=bot_loop, args=(token, bot_name))
+            p.daemon = True
+            p.start()
             time.sleep(1)
-
-def monitor_for_new_bots():
-    while True:
-        db = load_db()
-        for token, data in db.items():
-            if token not in running_tokens:
-                running_tokens.add(token)
-                bot_name = data.get("bot_name", token[:5])
-                print(f"🔔 توکن جدید پیدا شد! روشن کردن {bot_name}...")
-                t = threading.Thread(target=bot_loop, args=(token, bot_name))
-                t.daemon = True
-                t.start()
-                time.sleep(1)
-        time.sleep(5)
 
 @app.route('/')
 def index():
@@ -196,6 +182,11 @@ def login():
             }
             save_db(db)
             print(f"✅ ربات {db[token]['bot_name']} اضافه شد!")
+            
+            # روشن کردن فوری پروسه ربات جدید
+            p = Process(target=bot_loop, args=(token, db[token]['bot_name']))
+            p.daemon = True
+            p.start()
 
         return redirect(url_for('dashboard'))
     return render_template('login.html')
@@ -250,18 +241,21 @@ def logout():
     session.pop('token', None)
     return redirect(url_for('index'))
 
+# === راه‌اندازی اولیه ===
+# این بخش فقط زمانی اجرا میشه که فایل مستقیماً اجرا بشه (نه توسط Gunicorn)
 if __name__ == '__main__':
-    if not os.path.exists('templates'):
-        os.makedirs('templates')
-    
-    starter = threading.Thread(target=start_all_bots)
-    starter.daemon = True
-    starter.start()
-    
-    monitor = threading.Thread(target=monitor_for_new_bots)
-    monitor.daemon = True
-    monitor.start()
+    # یک پروسه برای ربات‌ها بساز
+    p = Process(target=run_bots)
+    p.daemon = True
+    p.start()
     
     port = int(os.environ.get('PORT', 5000))
     print(f"🌐 وب‌سرور ربات ساز پارس روی پورت {port} روشن شد.")
     app.run(debug=False, port=port, host='0.0.0.0')
+
+# === برای Gunicorn (روی Render) ===
+# Gunicorn این فایل رو ایمپورت می‌کنه، پس run_bots رو صدا می‌زنیم
+else:
+    p = Process(target=run_bots)
+    p.daemon = True
+    p.start()
