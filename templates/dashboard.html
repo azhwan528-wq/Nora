@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد ربات ساز پارس</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #0d1117; color: white; font-family: Tahoma, sans-serif; padding: 20px; min-height: 100vh; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; padding-bottom: 15px; margin-bottom: 20px; }
+        .header h2 { font-size: 18px; color: #00b4d8; }
+        .info-box { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center; }
+        .info-box p { color: #8b949e; font-size: 14px; margin-bottom: 5px; }
+        .info-box h3 { color: #c9d1d9; font-size: 16px; margin-bottom: 10px;}
+        .grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media (min-width: 600px) { .grid { grid-template-columns: 1fr 1fr; } }
+        .btn { background: #161b22; border: 1px solid #30363d; color: #00b4d8; padding: 20px; border-radius: 12px; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        .btn span { font-size: 24px; margin-bottom: 10px; }
+        .btn:hover { background: #00b4d8; color: white; border-color: #00b4d8; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>پنل پارس</h2>
+        <a href="/logout" style="color: #ff7b72; text-decoration: none;">خروج ❌</a>
+    </div>
+
+    <div class="info-box">
+        <p>نام ربات</p>
+        <h3>{{ bot.bot_name }}</h3>
+        <p>آیدی ربات</p>
+        <h3>{{ bot_username }}</h3>
+        <p>توکن (مخفی)</p>
+        <h3 style="direction: ltr; font-size: 12px; color: #8b949e;">{{ token[:15] }}...</h3>
+    </div>
+
+    <div class="grid">
+        <a href="/settings" class="btn"><span>⚙️</span>تنظیم متن استارت</a>
+        <a href="/manage_buttons" class="btn"><span>🔘</span>مدیریت دکمه‌ها</a>
+        <a href="#" class="btn"><span>⚡</span>پاسخ سریع (به‌زودی)</a>
+    </div>
+</body>
+</html>
