@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود به ربات ساز پارس</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #0d1117; color: white; font-family: Tahoma, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .login-box { background: #161b22; padding: 40px 30px; border-radius: 15px; border: 1px solid #30363d; text-align: center; width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #00b4d8; margin-bottom: 10px; font-size: 24px; }
+        p { margin-bottom: 25px; font-size: 15px; color: #8b949e; }
+        input { width: 100%; padding: 15px; margin: 10px 0 25px; border-radius: 10px; border: 1px solid #30363d; background: #0d1117; color: white; font-size: 16px; font-family: Tahoma; direction: ltr; text-align: left; }
+        input:focus { outline: none; border-color: #00b4d8; box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.2); }
+        button { width: 100%; padding: 15px; background: #00b4d8; border: none; border-radius: 10px; color: white; font-size: 17px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #0077b6; transform: translateY(-2px); }
+        .flash-messages { margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+        .flash-error { background: rgba(255, 123, 114, 0.1); color: #ff7b72; padding: 12px; border-radius: 8px; border: 1px solid rgba(255, 123, 114, 0.3); }
+        .flash-success { background: rgba(63, 185, 80, 0.1); color: #3fb950; padding: 12px; border-radius: 8px; border: 1px solid rgba(63, 185, 80, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2>🔐 ورود به پنل پارس</h2>
+        <p>توکن ربات خود را از @BotFather روبیکا دریافت کنید.</p>
+        
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="{% if category == 'error' %}flash-error{% else %}flash-success{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <form method="POST">
+            <input type="text" name="token" placeholder="مثال: CIGHBJ0DPBWGZ..." required autocomplete="off">
+            <button type="submit">ورود به داشبورد 🚀</button>
+        </form>
+    </div>
+</body>
+</html>
