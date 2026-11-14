@@ -42,7 +42,7 @@ def api_call(token, method, payload=None):
         return {}
 
 def bot_loop(token, bot_name):
-    print(f"✅ [{bot_name}] حلقه ربات روشن شد.")
+    print(f"✅ [{bot_name}] حلقه ربات روشن شد.", flush=True)
     me = api_call(token, "getMe")
     if not me: return
     bot_id = me.get("bot", {}).get("bot_id", "")
@@ -75,7 +75,7 @@ def bot_loop(token, bot_name):
                     if key in processed_messages[token]: continue
                     processed_messages[token].add(key)
                     
-                    print(f"📩 [{bot_name}] پیام از {chat_id}: {text[:30]}")
+                    print(f"📩 [{bot_name}] پیام از {chat_id}: {text[:30]}", flush=True)
                     
                     db = load_db()
                     bot_data = db.get(token, {})
@@ -112,7 +112,7 @@ def bot_loop(token, bot_name):
                                 send_payload["inline_keypad"] = inline_keypad
                             
                             res = api_call(token, "sendMessage", send_payload)
-                            print(f"📤 پاسخ استارت: {res}")
+                            print(f"📤 پاسخ استارت: {res}", flush=True)
                             
                         else:
                             api_call(token, "sendMessage", {"chat_id": chat_id, "text": f"دستور {cmd} دریافت شد."})
@@ -137,12 +137,17 @@ def bot_loop(token, bot_name):
                 processed_messages[token].clear()
             time.sleep(1)
         except Exception as e:
-            print(f"خطا در ربات {bot_name}: {e}")
+            print(f"خطا در ربات {bot_name}: {e}", flush=True)
             time.sleep(3)
 
-def run_bots():
-    time.sleep(3) # صبر برای بالا اومدن اولیه
+def run_bots_on_start():
+    """این تابع در لحظه لود شدن Gunicorn اجرا میشه"""
+    print("🚀 در حال راه‌اندازی ربات‌ها روی Render...", flush=True)
+    time.sleep(5) # صبر برای اینکه فایل دیتابیس (اگه هست) لود بشه
     db = load_db()
+    if not db:
+        print("⚠️ دیتابیس خالی است. منتظر لاگین کاربر...", flush=True)
+        return
     for token, data in db.items():
         if token not in running_tokens:
             running_tokens.add(token)
@@ -151,6 +156,9 @@ def run_bots():
             p.daemon = True
             p.start()
             time.sleep(1)
+
+# 🔴 این بخش خیلی مهمه: در لحظه لود شدن توسط Gunicorn اجرا میشه
+run_bots_on_start()
 
 @app.route('/')
 def index():
@@ -181,7 +189,7 @@ def login():
                 "inline_buttons": []
             }
             save_db(db)
-            print(f"✅ ربات {db[token]['bot_name']} اضافه شد!")
+            print(f"✅ ربات {db[token]['bot_name']} اضافه شد!", flush=True)
             
             # روشن کردن فوری پروسه ربات جدید
             p = Process(target=bot_loop, args=(token, db[token]['bot_name']))
@@ -209,7 +217,7 @@ def settings():
     if request.method == 'POST':
         db[token]['start_text'] = request.form.get('start_text')
         save_db(db)
-        print("✅ تنظیمات ذخیره شد!")
+        print("✅ تنظیمات ذخیره شد!", flush=True)
         return redirect(url_for('settings'))
     return render_template('settings.html', bot=db.get(token, {}))
 
@@ -241,21 +249,8 @@ def logout():
     session.pop('token', None)
     return redirect(url_for('index'))
 
-# === راه‌اندازی اولیه ===
-# این بخش فقط زمانی اجرا میشه که فایل مستقیماً اجرا بشه (نه توسط Gunicorn)
+# برای اجرای محلی در Pydroid (اگه خواستی تست کنی)
 if __name__ == '__main__':
-    # یک پروسه برای ربات‌ها بساز
-    p = Process(target=run_bots)
-    p.daemon = True
-    p.start()
-    
     port = int(os.environ.get('PORT', 5000))
-    print(f"🌐 وب‌سرور ربات ساز پارس روی پورت {port} روشن شد.")
+    print(f"🌐 وب‌سرور ربات ساز پارس روی پورت {port} روشن شد.", flush=True)
     app.run(debug=False, port=port, host='0.0.0.0')
-
-# === برای Gunicorn (روی Render) ===
-# Gunicorn این فایل رو ایمپورت می‌کنه، پس run_bots رو صدا می‌زنیم
-else:
-    p = Process(target=run_bots)
-    p.daemon = True
-    p.start()
