@@ -3,7 +3,7 @@ import json
 import os
 import time
 import requests
-from multiprocessing import Process
+import threading
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key_change_me_12345"
@@ -11,6 +11,7 @@ app.secret_key = "super_secret_key_change_me_12345"
 DB_FILE = "bots_db.json"
 API_BASE_TEMPLATE = "https://botapi.rubika.ir/v3/{token}/{method}"
 
+# دیکشنری‌های سراسری
 bot_offsets = {}
 processed_messages = {}
 running_tokens = set()
@@ -140,10 +141,10 @@ def bot_loop(token, bot_name):
             print(f"خطا در ربات {bot_name}: {e}", flush=True)
             time.sleep(3)
 
-def run_bots_on_start():
-    """این تابع در لحظه لود شدن Gunicorn اجرا میشه"""
+# تابع راه‌اندازی ربات‌ها با Threading
+def start_bots_after_startup():
     print("🚀 در حال راه‌اندازی ربات‌ها روی Render...", flush=True)
-    time.sleep(5) # صبر برای اینکه فایل دیتابیس (اگه هست) لود بشه
+    time.sleep(5) # صبر برای لود شدن اولیه
     db = load_db()
     if not db:
         print("⚠️ دیتابیس خالی است. منتظر لاگین کاربر...", flush=True)
@@ -152,13 +153,20 @@ def run_bots_on_start():
         if token not in running_tokens:
             running_tokens.add(token)
             bot_name = data.get("bot_name", token[:5])
-            p = Process(target=bot_loop, args=(token, bot_name))
-            p.daemon = True
-            p.start()
+            t = threading.Thread(target=bot_loop, args=(token, bot_name))
+            t.daemon = True
+            t.start()
             time.sleep(1)
 
-# 🔴 این بخش خیلی مهمه: در لحظه لود شدن توسط Gunicorn اجرا میشه
-run_bots_on_start()
+# 🔴 این خط خیلی مهمه: با اولین درخواست به سایت، ربات‌ها استارت می‌خورن
+@app.before_request
+def before_request_func():
+    if not running_tokens: # فقط یک بار اجرا میشه
+        # اجرا در یک ترد جداگانه تا جلوی لود شدن صفحه رو نگیره
+        t = threading.Thread(target=start_bots_after_startup)
+        t.daemon = True
+        t.start()
+        running_tokens.add("started") # یه نشانه که دیگه اجرا نشه
 
 @app.route('/')
 def index():
@@ -191,10 +199,10 @@ def login():
             save_db(db)
             print(f"✅ ربات {db[token]['bot_name']} اضافه شد!", flush=True)
             
-            # روشن کردن فوری پروسه ربات جدید
-            p = Process(target=bot_loop, args=(token, db[token]['bot_name']))
-            p.daemon = True
-            p.start()
+            # روشن کردن فوری ربات جدید
+            t = threading.Thread(target=bot_loop, args=(token, db[token]['bot_name']))
+            t.daemon = True
+            t.start()
 
         return redirect(url_for('dashboard'))
     return render_template('login.html')
@@ -249,7 +257,6 @@ def logout():
     session.pop('token', None)
     return redirect(url_for('index'))
 
-# برای اجرای محلی در Pydroid (اگه خواستی تست کنی)
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print(f"🌐 وب‌سرور ربات ساز پارس روی پورت {port} روشن شد.", flush=True)
